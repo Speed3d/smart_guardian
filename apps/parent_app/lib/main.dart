@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sg_core/sg_core.dart';
+import 'package:sg_domain/sg_domain.dart';
 import 'package:sg_ui/sg_ui.dart';
 
-/// ============================================================================
-/// 📌 نقطة انطلاق تطبيق الأب (Smart Guardian Parent)
-/// ----------------------------------------------------------------------------
-/// الواجهة الرئيسية لولي الأمر لمتابعة الأطفال وإرسال أوامر القفل وإدارة الأمان.
-/// ============================================================================
+import 'core/di/service_locator.dart';
+import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'features/dashboard/presentation/cubit/dashboard_state.dart';
 
-void main() {
+// ============================================================================
+// 📌 نقطة انطلاق تطبيق الأب (Smart Guardian Parent)
+// ----------------------------------------------------------------------------
+// يدمج BLoC/Cubit لإدارة الحالة و GetIt لحقن التبعيات والتواصل مع Firebase.
+// ============================================================================
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initServiceLocator();
   runApp(const SmartGuardianParentApp());
 }
 
@@ -18,51 +26,29 @@ class SmartGuardianParentApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const ParentDashboardScreen(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(
+          create: (_) => sl<AuthCubit>(),
+        ),
+        BlocProvider<DashboardCubit>(
+          create: (_) => sl<DashboardCubit>()..loadParentDashboard('demo_parent_id'),
+        ),
+      ],
+      child: MaterialApp(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const ParentDashboardScreen(),
+      ),
     );
   }
 }
 
-class ParentDashboardScreen extends StatefulWidget {
+class ParentDashboardScreen extends StatelessWidget {
   const ParentDashboardScreen({super.key});
-
-  @override
-  State<ParentDashboardScreen> createState() => _ParentDashboardScreenState();
-}
-
-class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
-  bool _isDeviceLocked = false;
-  bool _isLoading = false;
-
-  /// تبديل حالة قفل جهاز الطفل تجريبياً
-  void _toggleLock() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    setState(() {
-      _isDeviceLocked = !_isDeviceLocked;
-      _isLoading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isDeviceLocked
-                ? 'تم إرسال أمر قفل الجهاز فوراً عبر FCM'
-                : 'تم فك قفل الجهاز بنجاح',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: _isDeviceLocked ? AppColors.danger : AppColors.success,
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,17 +58,40 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       ),
       body: Directionality(
         textDirection: TextDirection.rtl,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // بطاقة ترحيبية وإحصائية
-              SgCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+        child: BlocConsumer<DashboardCubit, DashboardState>(
+          listener: (context, state) {
+            if (state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: AppColors.danger,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            // بيانات تجريبية افتراضية في حال كانت القائمة فارغة
+            final child = state.children.isNotEmpty
+                ? state.children.first
+                : ChildEntity(
+                    id: 'child_demo_1',
+                    parentId: 'parent_demo',
+                    name: 'أحمد',
+                    age: 10,
+                    dailyScreenTimeLimitMinutes: 120,
+                    usedScreenTimeTodayMinutes: 45,
+                    isLocked: false,
+                    lastActiveAt: DateTime.now(),
+                  );
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // بطاقة ترحيبية
+                  SgCard(
+                    child: Row(
                       children: [
                         CircleAvatar(
                           radius: 28,
@@ -118,83 +127,97 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
+                  ),
+                  const SizedBox(height: 16),
 
-              // بطاقة الطفل ومؤشر الوقت المتبقي
-              SgCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // بطاقة الطفل وإحصائياته الحية
+                  SgCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'جهاز: أحمد',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _isDeviceLocked
-                                ? AppColors.danger.withAlpha(25)
-                                : AppColors.success.withAlpha(25),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _isDeviceLocked ? 'الجهاز مقفل 🔒' : 'نشط الآن 🟢',
-                            style: TextStyle(
-                              color: _isDeviceLocked ? AppColors.danger : AppColors.success,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'جهاز: ${child.name}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: child.isLocked
+                                    ? AppColors.danger.withAlpha(25)
+                                    : AppColors.success.withAlpha(25),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                child.isLocked ? 'الجهاز مقفل 🔒' : 'نشط الآن 🟢',
+                                style: TextStyle(
+                                  color: child.isLocked
+                                      ? AppColors.danger
+                                      : AppColors.success,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                              icon: Icons.timer,
+                              label: 'الوقت المتبقي',
+                              value: AppDateUtils.formatDurationMinutes(
+                                  child.remainingMinutes),
+                            ),
+                            _buildStatItem(
+                              icon: Icons.battery_charging_full,
+                              label: 'البطارية',
+                              value: '84%',
+                            ),
+                            _buildStatItem(
+                              icon: Icons.location_on,
+                              label: 'الموقع',
+                              value: 'المنزل 🏠',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // زر تفعيل / إلغاء القفل المرتبط بالـ Cubit
+                        SizedBox(
+                          width: double.infinity,
+                          child: SgButton(
+                            label: child.isLocked
+                                ? 'إلغاء قفل الجهاز'
+                                : 'قفل الجهاز فوراً',
+                            type: child.isLocked
+                                ? SgButtonType.secondary
+                                : SgButtonType.danger,
+                            icon: child.isLocked ? Icons.lock_open : Icons.lock,
+                            isLoading: state.isActionInProgress,
+                            onPressed: () {
+                              context.read<DashboardCubit>().toggleChildLock(
+                                    childId: child.id,
+                                    deviceId: 'device_demo_1',
+                                    currentLockState: child.isLocked,
+                                  );
+                            },
                           ),
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          icon: Icons.timer,
-                          label: 'الوقت المتبقي',
-                          value: AppDateUtils.formatDurationMinutes(75),
-                        ),
-                        _buildStatItem(
-                          icon: Icons.battery_charging_full,
-                          label: 'البطارية',
-                          value: '84%',
-                        ),
-                        _buildStatItem(
-                          icon: Icons.location_on,
-                          label: 'الموقع',
-                          value: 'المنزل 🏠',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // زر التحكم بالقفل
-                    SizedBox(
-                      width: double.infinity,
-                      child: SgButton(
-                        label: _isDeviceLocked ? 'إلغاء قفل الجهاز' : 'قفل الجهاز فوراً',
-                        type: _isDeviceLocked ? SgButtonType.secondary : SgButtonType.danger,
-                        icon: _isDeviceLocked ? Icons.lock_open : Icons.lock,
-                        isLoading: _isLoading,
-                        onPressed: _toggleLock,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -215,7 +238,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
         ),
         Text(
           label,
-          style: const TextStyle(color: AppColors.lightTextSecondary, fontSize: 12),
+          style:
+              const TextStyle(color: AppColors.lightTextSecondary, fontSize: 12),
         ),
       ],
     );

@@ -1,10 +1,12 @@
+import 'package:equatable/equatable.dart';
+
 // ============================================================================
 // 📌 كيان الطفل (Child Entity)
 // ----------------------------------------------------------------------------
 // يمثل الطفل في طبقة منطق الأعمال المجردة (Domain)، بعيداً عن أي مكتبات خارجية.
 // ============================================================================
 
-class ChildEntity {
+class ChildEntity extends Equatable {
   /// المعرف الفريد للطفل في النظام
   final String id;
 
@@ -52,4 +54,44 @@ class ChildEntity {
 
   /// هل استنفد الطفل وقته اليومي المسموح به؟
   bool get hasExhaustedTime => remainingMinutes <= 0;
+
+  /// نسخ الكيان مع تعديل بعض الخصائص (copyWith)
+  ChildEntity copyWith({
+    String? id,
+    String? parentId,
+    String? name,
+    int? age,
+    String? avatarUrl,
+    int? dailyScreenTimeLimitMinutes,
+    int? usedScreenTimeTodayMinutes,
+    bool? isLocked,
+    DateTime? lastActiveAt,
+  }) {
+    return ChildEntity(
+      id: id ?? this.id,
+      parentId: parentId ?? this.parentId,
+      name: name ?? this.name,
+      age: age ?? this.age,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      dailyScreenTimeLimitMinutes:
+          dailyScreenTimeLimitMinutes ?? this.dailyScreenTimeLimitMinutes,
+      usedScreenTimeTodayMinutes:
+          usedScreenTimeTodayMinutes ?? this.usedScreenTimeTodayMinutes,
+      isLocked: isLocked ?? this.isLocked,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        parentId,
+        name,
+        age,
+        avatarUrl,
+        dailyScreenTimeLimitMinutes,
+        usedScreenTimeTodayMinutes,
+        isLocked,
+        lastActiveAt,
+      ];
 }

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sg_core/sg_core.dart';
 import 'package:sg_ui/sg_ui.dart';
-import 'package:sg_native_bridge/sg_native_bridge.dart';
 
-/// ============================================================================
-/// 📌 نقطة انطلاق تطبيق الطفل (Smart Guardian Child)
-/// ----------------------------------------------------------------------------
-/// يثبت على جهاز الطفل؛ يعرض الوقت المتبقي، ويستقبل أوامر الأب، ويتضمن زر الطوارئ SOS.
-/// ============================================================================
+import 'core/di/service_locator.dart';
+import 'features/status/presentation/cubit/child_status_cubit.dart';
+import 'features/status/presentation/cubit/child_status_state.dart';
 
-void main() {
+// ============================================================================
+// 📌 نقطة انطلاق تطبيق الطفل (Smart Guardian Child)
+// ----------------------------------------------------------------------------
+// يدمج BLoC/Cubit مع قنوات الاتصال الأصلية (Platform Channels) لإدارة الحظر.
+// ============================================================================
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initChildServiceLocator();
   runApp(const SmartGuardianChildApp());
 }
 
@@ -19,53 +24,23 @@ class SmartGuardianChildApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '${AppConstants.appName} - حماية الطفل',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const ChildStatusScreen(),
+    return BlocProvider<ChildStatusCubit>(
+      create: (_) => sl<ChildStatusCubit>()
+        ..listenToParentCommands('demo_child_1', 'demo_device_1'),
+      child: MaterialApp(
+        title: '${AppConstants.appName} - حماية الطفل',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const ChildStatusScreen(),
+      ),
     );
   }
 }
 
-class ChildStatusScreen extends StatefulWidget {
+class ChildStatusScreen extends StatelessWidget {
   const ChildStatusScreen({super.key});
-
-  @override
-  State<ChildStatusScreen> createState() => _ChildStatusScreenState();
-}
-
-class _ChildStatusScreenState extends State<ChildStatusScreen> {
-  final int _remainingMinutes = 90;
-  bool _isSendingSos = false;
-
-  /// إرسال إشارة استغاثة طارئة للأب
-  void _sendSosAlert() async {
-    setState(() => _isSendingSos = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isSendingSos = false);
-
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('تم إرسال إشعار الطوارئ 🚨', textAlign: TextAlign.center),
-          content: const Text(
-            'تم إرسال موقعك الجغرافي وحالة جهازك فوراً إلى هاتف ولي الأمر.',
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('حسناً'),
-            ),
-          ],
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,102 +50,163 @@ class _ChildStatusScreenState extends State<ChildStatusScreen> {
       ),
       body: Directionality(
         textDirection: TextDirection.rtl,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // دائرة عرض الوقت المتبقي
-              Center(
-                child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withAlpha(20),
-                    border: Border.all(color: AppColors.primary, width: 4),
+        child: BlocConsumer<ChildStatusCubit, ChildStatusState>(
+          listener: (context, state) {
+            if (state.alertMessage != null) {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('تم إرسال إشعار الطوارئ 🚨',
+                      textAlign: TextAlign.center),
+                  content: Text(
+                    state.alertMessage!,
+                    textAlign: TextAlign.center,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.hourglass_top, color: AppColors.primary, size: 36),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppDateUtils.formatDurationMinutes(_remainingMinutes),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const Text(
-                        'متبقي اليوم',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.lightTextSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        context.read<ChildStatusCubit>().clearAlert();
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('حسناً'),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 32),
-
-              // بطاقة حالة الحماية
-              SgCard(
-                child: Row(
-                  children: [
-                    const Icon(Icons.shield, color: AppColors.success, size: 32),
-                    const SizedBox(width: 16),
-                    Expanded(
+              );
+            }
+          },
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // دائرة عرض الوقت المتبقي
+                  Center(
+                    child: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: state.isLocked
+                            ? AppColors.danger.withAlpha(20)
+                            : AppColors.primary.withAlpha(20),
+                        border: Border.all(
+                          color: state.isLocked
+                              ? AppColors.danger
+                              : AppColors.primary,
+                          width: 4,
+                        ),
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'الحماية الذكية مفعلة',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'الجهاز يخضع للجدول المحدد والرقابة الآمنة.',
-                            style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 13),
+                          Icon(
+                            state.isLocked ? Icons.lock : Icons.hourglass_top,
+                            color: state.isLocked
+                                ? AppColors.danger
+                                : AppColors.primary,
+                            size: 36,
                           ),
                           const SizedBox(height: 8),
-                          // فحص حالة إدارة الجهاز عبر الـ Native Bridge
-                          FutureBuilder<bool>(
-                            future: DeviceControlBridge.isDeviceAdminActive(),
-                            builder: (context, snapshot) {
-                              final isAdmin = snapshot.data ?? false;
-                              return Text(
-                                isAdmin ? 'حماية الحذف: نشطة 🛡️' : 'حماية الحذف: بانتظار التفعيل ⚙️',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isAdmin ? AppColors.success : AppColors.warning,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            },
+                          Text(
+                            state.isLocked
+                                ? 'الجهاز مقفل'
+                                : AppDateUtils.formatDurationMinutes(
+                                    state.remainingMinutes),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: state.isLocked
+                                  ? AppColors.danger
+                                  : AppColors.primary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            state.isLocked ? 'بأمر من ولي الأمر' : 'متبقي اليوم',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.lightTextSecondary,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const Spacer(),
+                  ),
+                  const SizedBox(height: 32),
 
-              // زر الطوارئ SOS
-              SgButton(
-                label: 'طلب مساعدة طارئة (SOS)',
-                type: SgButtonType.danger,
-                icon: Icons.emergency,
-                isLoading: _isSendingSos,
-                onPressed: _sendSosAlert,
+                  // بطاقة حالة الحماية الأصلية
+                  SgCard(
+                    child: Row(
+                      children: [
+                        Icon(
+                          state.isLocked ? Icons.lock : Icons.shield,
+                          color: state.isLocked
+                              ? AppColors.danger
+                              : AppColors.success,
+                          size: 32,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                state.isLocked
+                                    ? 'تم تقييد استخدام الجهاز'
+                                    : 'الحماية الذكية مفعلة',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                state.isLocked
+                                    ? 'لا يمكن فتح التطبيقات حتى يرفع الأب القفل.'
+                                    : 'الجهاز يخضع للجدول المحدد والرقابة الآمنة.',
+                                style: const TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                state.isDeviceAdminActive
+                                    ? 'حماية الحذف: نشطة 🛡️'
+                                    : 'حماية الحذف: بانتظار التفعيل ⚙️',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: state.isDeviceAdminActive
+                                      ? AppColors.success
+                                      : AppColors.warning,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+
+                  // زر الطوارئ SOS
+                  SgButton(
+                    label: 'طلب مساعدة طارئة (SOS)',
+                    type: SgButtonType.danger,
+                    icon: Icons.emergency,
+                    isLoading: state.isSendingSos,
+                    onPressed: () {
+                      context.read<ChildStatusCubit>().sendSosAlert();
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

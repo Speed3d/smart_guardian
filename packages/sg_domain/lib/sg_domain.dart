@@ -9,9 +9,14 @@ library;
 export 'entities/child_entity.dart';
 export 'entities/command_entity.dart';
 export 'entities/location_entity.dart';
+export 'entities/user_entity.dart';
 
 // المستودعات المجردة (Repository Interfaces)
+export 'repositories/auth_repository.dart';
+export 'repositories/child_repository.dart';
 export 'repositories/command_repository.dart';
 
 // حالات الاستخدام (Use Cases)
+export 'usecases/get_children_usecase.dart';
 export 'usecases/lock_device_usecase.dart';
+export 'usecases/sign_in_usecase.dart';
