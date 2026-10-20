@@ -9,6 +9,7 @@ void main() {
       mockAuthDataSource: FakeAuthDataSource(),
       mockChildDataSource: FakeChildDataSource(),
       mockCommandDataSource: FakeCommandDataSource(),
+      mockPairingDataSource: FakePairingDataSource(),
     );
   });
 
@@ -17,5 +18,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('لوحة تحكم الأب - Smart Guardian'), findsOneWidget);
     expect(find.text('جهاز: أحمد'), findsOneWidget);
+    expect(find.text('توليد رمز ربط جهاز الطفل (Pairing Code)'), findsOneWidget);
   });
 }

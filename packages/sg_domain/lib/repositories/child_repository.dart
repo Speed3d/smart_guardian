@@ -10,6 +10,15 @@ abstract class ChildRepository {
   /// جلب قائمة أطفال ولي الأمر الحالي
   Stream<List<ChildEntity>> getChildrenStream(String parentId);
 
+  /// إضافة طفل جديد إلى العائلة
+  Future<ChildEntity> addChild({
+    required String parentId,
+    required String name,
+    required int age,
+    required int dailyScreenTimeLimitMinutes,
+    String? avatarUrl,
+  });
+
   /// جلب بيانات طفل محدد بالمعرف
   Future<ChildEntity?> getChildById(String childId);
 

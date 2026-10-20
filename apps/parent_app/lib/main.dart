@@ -6,8 +6,12 @@ import 'package:sg_ui/sg_ui.dart';
 
 import 'core/di/service_locator.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/children/presentation/cubit/manage_child_cubit.dart';
+import 'features/children/presentation/views/add_edit_child_screen.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'features/dashboard/presentation/cubit/dashboard_state.dart';
+import 'features/pairing/presentation/cubit/pairing_code_cubit.dart';
+import 'features/pairing/presentation/views/generate_pairing_code_screen.dart';
 
 // ============================================================================
 // 📌 نقطة انطلاق تطبيق الأب (Smart Guardian Parent)
@@ -32,7 +36,8 @@ class SmartGuardianParentApp extends StatelessWidget {
           create: (_) => sl<AuthCubit>(),
         ),
         BlocProvider<DashboardCubit>(
-          create: (_) => sl<DashboardCubit>()..loadParentDashboard('demo_parent_id'),
+          create: (_) =>
+              sl<DashboardCubit>()..loadParentDashboard('demo_parent_id'),
         ),
       ],
       child: MaterialApp(
@@ -55,6 +60,23 @@ class ParentDashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('لوحة تحكم الأب - Smart Guardian'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add_alt_1),
+            tooltip: 'إضافة طفل',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider<ManageChildCubit>(
+                    create: (_) => sl<ManageChildCubit>(),
+                    child: const AddEditChildScreen(parentId: 'demo_parent_id'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Directionality(
         textDirection: TextDirection.rtl,
@@ -70,12 +92,12 @@ class ParentDashboardScreen extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            // بيانات تجريبية افتراضية في حال كانت القائمة فارغة
+            // أطفال تجريبيين إذا لم تتوفر بيانات بعد
             final child = state.children.isNotEmpty
                 ? state.children.first
                 : ChildEntity(
                     id: 'child_demo_1',
-                    parentId: 'parent_demo',
+                    parentId: 'demo_parent_id',
                     name: 'أحمد',
                     age: 10,
                     dailyScreenTimeLimitMinutes: 120,
@@ -190,7 +212,7 @@ class ParentDashboardScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // زر تفعيل / إلغاء القفل المرتبط بالـ Cubit
+                        // زر تفعيل / إلغاء القفل
                         SizedBox(
                           width: double.infinity,
                           child: SgButton(
@@ -210,6 +232,29 @@ class ParentDashboardScreen extends StatelessWidget {
                                   );
                             },
                           ),
+                        ),
+                        const SizedBox(height: 10),
+                        // زر توليد كود ربط الجهاز
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(46),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.qr_code, size: 20),
+                          label: const Text('توليد رمز ربط جهاز الطفل (Pairing Code)'),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BlocProvider<PairingCodeCubit>(
+                                  create: (_) => sl<PairingCodeCubit>(),
+                                  child: GeneratePairingCodeScreen(child: child),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

@@ -6,7 +6,7 @@ import 'auth_state.dart';
 // ============================================================================
 // 📌 إدارة مصادقة ولي الأمر (Auth Cubit)
 // ----------------------------------------------------------------------------
-// يدير تسجيل الدخول والخروج والتحقق من حالة المستخدم مع Firebase Auth.
+// يدير تسجيل الدخول والخروج وإنشاء الحساب مع Firebase Auth.
 // ============================================================================
 
 class AuthCubit extends Cubit<AuthState> {
@@ -36,6 +36,24 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final user = await signInUseCase.execute(email: email, password: password);
+      emit(state.copyWith(status: AuthStatus.authenticated, user: user));
+    } catch (e) {
+      emit(state.copyWith(
+        status: AuthStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  /// إنشاء حساب جديد لولي الأمر
+  Future<void> register(String email, String password, String displayName) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+    try {
+      final user = await authRepository.registerWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+        displayName: displayName.trim(),
+      );
       emit(state.copyWith(status: AuthStatus.authenticated, user: user));
     } catch (e) {
       emit(state.copyWith(

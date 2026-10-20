@@ -32,6 +32,9 @@ class FakeAuthDataSource implements FirebaseAuthDataSource {
 
 class FakeChildDataSource implements FirestoreChildDataSource {
   @override
+  Future<ChildModel> addChild(ChildModel child) async => child;
+
+  @override
   Future<void> extendScreenTime(String childId, int additionalMinutes) async {}
 
   @override
@@ -73,4 +76,25 @@ class FakeCommandDataSource implements FirestoreCommandDataSource {
   @override
   Future<void> updateCommandStatus(
       String commandId, CommandStatus status) async {}
+}
+
+class FakePairingDataSource implements FirestorePairingDataSource {
+  @override
+  Future<PairingCodeModel> generatePairingCode(
+      String parentId, String childId) async {
+    return PairingCodeModel(
+      id: 'pairing_1',
+      code: '582914',
+      parentId: parentId,
+      childId: childId,
+      expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+      isUsed: false,
+    );
+  }
+
+  @override
+  Future<void> markCodeAsUsed(String codeId, String deviceId) async {}
+
+  @override
+  Future<PairingCodeModel?> verifyPairingCode(String code) async => null;
 }

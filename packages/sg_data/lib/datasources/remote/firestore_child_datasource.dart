@@ -10,6 +10,7 @@ import '../../models/child_model.dart';
 
 abstract class FirestoreChildDataSource {
   Stream<List<ChildModel>> getChildrenStream(String parentId);
+  Future<ChildModel> addChild(ChildModel child);
   Future<ChildModel?> getChildById(String childId);
   Future<void> updateChildLockStatus(String childId, bool isLocked);
   Future<void> updateDailyLimit(String childId, int limitMinutes);
@@ -33,6 +34,26 @@ class FirestoreChildDataSourceImpl implements FirestoreChildDataSource {
         .map((snapshot) => snapshot.docs
             .map((doc) => ChildModel.fromMap(doc.data(), doc.id))
             .toList());
+  }
+
+  @override
+  Future<ChildModel> addChild(ChildModel child) async {
+    try {
+      final docRef = await _childrenCollection.add(child.toMap());
+      return ChildModel(
+        id: docRef.id,
+        parentId: child.parentId,
+        name: child.name,
+        age: child.age,
+        avatarUrl: child.avatarUrl,
+        dailyScreenTimeLimitMinutes: child.dailyScreenTimeLimitMinutes,
+        usedScreenTimeTodayMinutes: child.usedScreenTimeTodayMinutes,
+        isLocked: child.isLocked,
+        lastActiveAt: child.lastActiveAt,
+      );
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
   }
 
   @override

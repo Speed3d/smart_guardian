@@ -11,8 +11,8 @@
 |:---:|:---|:---:|:---|
 | **Phase 1** | تهيئة بيئة العمل وهيكل الـ Monorepo والحزم المشتركة | ✅ **مكتملة بنجاح 100%** | Melos + Pub Workspaces، 5 حزم مشتركة، تطبيقا الأب والطفل، صفر أخطاء تحليلية |
 | **Phase 2** | إدارة الحالة (BLoC/Cubit) وتكامل خدمات Firebase | ✅ **مكتملة بنجاح 100%** | دمج BLoC 9 و GetIt و Firebase، مستودعات ومصادر البيانات، واجهات تفاعلية بالكامل |
-| **Phase 3** | تطبيق الأب (Parent App) — واجهات المصادقة وإدارة ملفات الأطفال وتوليد كود الربط | ⏳ **الخطوة التالية** | شاشات تسجيل الدخول، توليد كود الربط المؤقت، إضافة وتعديل بيانات الأطفال |
-| **Phase 4** | تطبيق الطفل (Child App) — شاشات الربط وإدخال الكود | ⏳ قادم | شاشة إدخال رمز الربط الرقمي، وتأكيد الاقتران بحساب الأب في Firestore |
+| **Phase 3** | تطبيق الأب (Parent App) — واجهات المصادقة، إدارة ملفات الأطفال، وتوليد كود الربط | ✅ **مكتملة بنجاح 100%** | شاشات تسجيل الدخول، إنشاء الحساب، توليد كود الربط (6 أرقام)، وإضافة ملفات الأطفال |
+| **Phase 4** | تطبيق الطفل (Child App) — شاشات الربط وإدخال الكود وتأكيد الاقتران | ⏳ **الخطوة التالية** | شاشة إدخال رمز الربط الرقمي، وتأكيد الاقتران بحساب الأب في Firestore |
 | **Phase 5** | جسر الخدمات الأصلية لأندرويد (Kotlin Native Bridge) | ⏳ قادم | `AccessibilityService`, `UsageStatsManager`, `ForegroundService`, `DeviceAdmin` |
 | **Phase 6** | نظام الأوامر والمزامنة الحية (FCM & Real-time Commands) | ⏳ قادم | القفل الفوري، تمديد الوقت، تجميع تقارير الاستخدام والموقع لتقليل التكلفة |
 | **Phase 7** | جسر خدمات iOS الأصلية (Swift Native & Family Controls على جهاز الماك) | ⏳ قادم | تفعيل ومزامنة كود Mac لـ `DeviceActivityMonitorExtension` عبر Xcode |
@@ -22,51 +22,42 @@
 
 ## 📝 سجل المراحل والخطوات المنجزة (Execution Progress)
 
-### 📌 المرحلة 2: إدارة الحالة (BLoC/Cubit) وتكامل خدمات Firebase
+### 📌 المرحلة 3: تطبيق الأب — واجهات المصادقة، إدارة الأطفال، وتوليد كود الربط
 * **تاريخ الإنجاز**: 20 أكتوبر 2026
 * **الحالة**: ✅ **مكتملة بنجاح 100% (تحليل الكود: 0 أخطاء | الاختبارات الآلية: 4/4 نجاح)**
 
 #### 1. ما تم إنجازه (What was accomplished)
-* [x] **تحديث ميثاق المعايير (Rule 7)**: اعتماد القاعدة السابعة الإلزامية لتشغيل `dart analyze` واختبارات `flutter test` تلقائياً بعد كل خطوة عمل.
-* [x] **تثبيت الفرع الرئيسي `main`**: تحويل فرع Git الافتراضي محلياً إلى `main` لعزل المشروع بشكل مستقل تماماً.
-* [x] **دمج مكتبات إدارة الحالة وحقن التبعيات**:
-  * إضافة `flutter_bloc: ^9.1.1`، `equatable: ^3.0.0`، و `get_it: ^9.3.0` لتطبيقي `parent_app` و `child_app`.
-  * إضافة `equatable` لطبقة الـ Domain لدعم مقارنة الكيانات بدون إعادة بناء عشوائية للواجهات.
-* [x] **دمج حزم Firebase الرسمية** في حزمة `sg_data`:
-  * `firebase_core: ^5.0.0`
-  * `firebase_auth: ^7.0.0`
-  * `cloud_firestore: ^7.0.0`
-* [x] **تطوير طبقة الـ Domain (`sg_domain`)**:
-  * إنشاء كيان المستخدم `UserEntity`.
-  * إضافة عقود المستودعات `AuthRepository` و `ChildRepository`.
-  * إضافة حالات الاستخدام `SignInUseCase` و `GetChildrenUseCase`.
-* [x] **تطوير طبقة البيانات (`sg_data`)**:
-  * بناء نماذج DTO: `UserModel` و `ChildModel`.
-  * بناء مصادر البيانات السحابية: `FirebaseAuthDataSource`، `FirestoreChildDataSource`، و `FirestoreCommandDataSource`.
-  * تطبيق المستودعات الرسمية: `AuthRepositoryImpl`، `ChildRepositoryImpl`، و `CommandRepositoryImpl`.
-* [x] **تطوير طبقة العرض في تطبيق الأب (`parent_app`)**:
-  * إنشاء `ServiceLocator` باستخدام `GetIt` لحقن التبعيات.
-  * إنشاء `AuthCubit` لإدارة جلسة ومصادقة ولي الأمر.
-  * إنشاء `DashboardCubit` لجلب أطفال ولي الأمر وإرسال أوامر القفل وتمديد الوقت لحظياً.
-  * ربط شاشة `ParentDashboardScreen` مع `BlocConsumer` و `BlocProvider` لتحديث الواجهة لحظياً.
-* [x] **تطوير طبقة العرض في تطبيق الطفل (`child_app`)**:
-  * إنشاء `ServiceLocator` لحقن مستودع الأوامر.
-  * إنشاء `ChildStatusCubit` للاستماع المباشر لأوامر الأب وتطبيق القفل عبر `DeviceControlBridge`.
-  * ربط شاشة `ChildStatusScreen` مع `BlocConsumer`.
-* [x] **الامتثال للقاعدة السابعة (Rule 7)**:
-  * تشغيل `dart analyze` بنتيجة **صفر أخطاء وصفر تحذيرات**.
-  * تشغيل الاختبارات الآلية بنجاح 100% مع إنشاء مصادر بيانات تجريبية (Fake Data Sources) للعمل دون اتصال.
+* [x] **ربط مستودع GitHub والرفع على فرع `main`**:
+  * ربط المشروع بمستودع GitHub: `https://github.com/Speed3d/smart_guardian.git`.
+  * رفع كافة المراحل السابقة بنجاح على فرع `main` الموحد.
+* [x] **بناء واجهات المصادقة الكاملة لولي الأمر**:
+  * شاشة تسجيل الدخول (`LoginScreen`): التحقق من البريد وكلمة المرور مع إظهار/إخفاء كلمة المرور.
+  * شاشة إنشاء الحساب (`RegisterScreen`): تسجيل حساب أب جديد والربط الفوري مع Firebase Auth.
+* [x] **بناء ميزة توليد كود الربط المؤقت (Pairing Code Feature)**:
+  * كيان `PairingCodeEntity` ونموذج `PairingCodeModel`.
+  * مصدر بيانات Firestore ومستودع الأكواد (`FirestorePairingDataSource` و `PairingRepositoryImpl`).
+  * حالة الاستخدام `GeneratePairingCodeUseCase`.
+  * كود `PairingCodeCubit` لإدارة حالة التوليد.
+  * شاشة عرض كود الربط الرقمي المكون من 6 أرقام (`GeneratePairingCodeScreen`) مع مؤشر وقت الصلاحية (10 دقائق) وزر إعادة التوليد.
+* [x] **بناء ميزة إدارة وإضافة الأطفال (Child Management Feature)**:
+  * حالة الاستخدام `AddChildUseCase`.
+  * كود `ManageChildCubit` لحفظ ملفات الأطفال.
+  * شاشة إضافة الطفل (`AddEditChildScreen`): تحديد الاسم، العمر، وشريط تمرير لتحديد الحد اليومي لوقت الشاشة بدقة (من 30 دقيقة إلى 8 ساعات).
+* [x] **تحديث لوحة تحكم الأب (`ParentDashboardScreen`)**:
+  * إضافة زر إضافة طفل في شريط العنوان (AppBar).
+  * إضافة زر توليد كود الربط في بطاقة الطفل لسهولة الاقتران السريع.
+* [x] **الامتثال التام للقاعدة السابعة (Rule 7)**:
+  * تشغيل `dart analyze`: صفر أخطاء وصفر تحذيرات.
+  * تشغيل الاختبارات الآلية بنجاح 100%.
 
 #### 2. الأخطاء والمشاكل التي واجهتنا أثناء التنفيذ (Encountered Issues & Solutions)
-1. **تحذيرات الـ Linter `prefer_initializing_formals`**: أظهر المحلل تنبيهاً حول إسناد المعاملات إلى حقول الكلاسات يدوياً.
-   * *الحل*: تم تحويل المعاملات في الـ Cubits لتستخدم التهيئة المباشرة القياسية `required this.repository`.
-2. **عدم إمكانية الاتصال بـ Firebase في الاختبارات الآلية**: واجهت اختبارات الواجهات خطأ عند تشغيل التطبيق في بيئة الاختبار لعدم وجود تهيئة سحابية حقيقية.
-   * *الحل*: تم تصميم `initServiceLocator` لقبول مصادر بيانات بديلة (`mockDataSources`)، وتم بناء `FakeAuthDataSource` و `FakeChildDataSource` و `FakeCommandDataSource` لتشغيل كافة الاختبارات بنجاح 100% دون الحاجة إلى إنترنت أو سيرفر.
+1. **تحديث الـ Fakes في اختبارات الواجهات**: بعد إضافة ميزة توليد الأكواد وإضافة الأطفال، تطلبت الواجهة توفير مصدر بيانات تجريبي لأكواد الربط لمنع محاولة الاتصال بـ Firestore الحقيقي أثناء الاختبار.
+   * *الحل*: تم إنشاء `FakePairingDataSource` وتحديث `FakeChildDataSource` ليدعم `addChild` بنجاح واجتياز كافة الاختبارات.
 
-#### 3. ما تبقى في المرحلة التالية (Immediate Next Tasks - Phase 3)
-* [ ] بناء شاشات تسجيل الدخول وإنشاء الحساب في تطبيق الأب (`parent_app`).
-* [ ] بناء نظام توليد كود الربط المؤقت المكون من 6 أرقام (Pairing Code Generator).
-* [ ] بناء شاشة إضافة وتعديل بيانات الأطفال وتحديد الحد اليومي بالدقائق.
+#### 3. ما تبقى في المرحلة التالية (Immediate Next Tasks - Phase 4)
+* [ ] بناء شاشة إدخال رمز الربط الرقمي (6 حقول إدخال OTP رقمية) في تطبيق الطفل (`child_app`).
+* [ ] بناء `PairingCubit` في تطبيق الطفل للتحقق من صحة الكود وربط معرّف الجهاز (DeviceId) بحساب الأب في Firestore.
+* [ ] تحديث واجهة تطبيق الطفل للانتقال تلقائياً إلى وضع الحماية النشط فور اكتمال الربط.
 
 ---
 
@@ -75,9 +66,8 @@
 ### 🖥️ على حاسوب الويندوز (الرئيسي):
 ```bash
 git add .
-git commit -m "feat(phase-2): complete bloc state management, firebase integration, and service locators"
-# لرفع التحديثات على الفرع الرئيسي:
-# git push origin main
+git commit -m "feat(phase-3): complete auth screens, pairing code generator, and child management"
+git push origin main
 ```
 
 ### 🍎 على حاسوب الماك (للتجربة وبناء iOS):
