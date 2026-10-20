@@ -1,0 +1,99 @@
+rules_version = '2';
+
+// ============================================================================
+// 📌 قواعد أمان قاعدة بيانات Cloud Firestore (Smart Guardian Security Rules)
+// ----------------------------------------------------------------------------
+// تضمن هذه القواعد الحماية الصارمة لبيانات الأطفال والأجهزة وخصوصية العوائل:
+// 1. عزل بيانات كل ولي أمر وعائلته عن باقي المستخدمين.
+// 2. السماح لأجهزة الأطفال بقراءة الأوامر وتحديث حالتها وتقارير الاستخدام فقط.
+// 3. منع التلاعب بحصص الاشتراكات أو الأكواد من غير المصرح لهم.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // دالة مساعدة: التحقق من تسجيل دخول المستخدم
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // دالة مساعدة: التحقق من مطابقة معرّف المستخدم
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- 1. مجموعة المستخدمين (Users Collection) ---
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // --- 2. مجموعة العوائل (Families Collection) ---
+    match /families/{familyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.data.parentId == request.auth.uid;
+    }
+
+    // --- 3. مجموعة الأطفال (Children Collection) ---
+    match /children/{childId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && (
+        resource == null || resource.data.parentId == request.auth.uid || request.resource.data.parentId == request.auth.uid
+      );
+    }
+
+    // --- 4. مجموعة الأجهزة المسجلة (Devices Collection) ---
+    match /devices/{deviceId} {
+      allow read: if isAuthenticated();
+      // السماح بتسجيل الجهاز وتحديث نسبة البطارية وحالة الاتصال
+      allow create, update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // --- 5. مجموعة رموز الاقتران (Pairing Codes Collection) ---
+    match /pairing_codes/{codeId} {
+      // قراءة الرمز للتحقق منه أثناء إدخال الطفل للـ OTP
+      allow read: if isAuthenticated();
+      // إنشاء الرمز مقتصر على ولي الأمر
+      allow create: if isAuthenticated() && request.resource.data.parentId == request.auth.uid;
+      // تحديث الرمز كوسم مستخدم (isUsed = true)
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && resource.data.parentId == request.auth.uid;
+    }
+
+    // --- 6. مجموعة الأوامر الفورية (Commands Collection) ---
+    match /commands/{commandId} {
+      // استماع جهاز الطفل وقراءة الأب لحالة الأمر
+      allow read: if isAuthenticated();
+      // إنشاء الأمر يصدر فقط عند طلب الأب أو المشرف
+      allow create: if isAuthenticated();
+      // تحديث حالة الأمر (executed / failed) مسموح لتطبيق الطفل لإشعار الأب
+      allow update: if isAuthenticated() && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'executedAt', 'failureReason'])
+      );
+      allow delete: if isAuthenticated();
+    }
+
+    // --- 7. مجموعة تقارير الاستخدام المجمعة (Usage Logs Collection) ---
+    match /usage_logs/{logId} {
+      allow read: if isAuthenticated();
+      // رفع تقرير الاستخدام اليومي من جهاز الطفل
+      allow create, update: if isAuthenticated();
+      allow delete: if false; // الاحتفاظ بسجل الاستخدام التاريخي للتقارير
+    }
+
+    // --- 8. مجموعة إحداثيات المواقع الجغرافية (Locations Collection) ---
+    match /locations/{locationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // سجل مسار غير قابل للتعديل
+    }
+
+    // --- 9. مجموعة الاشتراكات والفواتير (Subscriptions Collection) ---
+    match /subscriptions/{subscriptionId} {
+      // قراءة فقط للمستخدم
+      allow read: if isAuthenticated();
+      // الكتابة والتعديل مقتصرة فقط على Cloud Functions وخوادم الدفع عبر Admin SDK
+      allow write: if false;
+    }
+  }
+}

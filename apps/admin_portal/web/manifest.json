@@ -1,0 +1,11 @@
+{
+  "name": "Smart Guardian Admin Portal",
+  "short_name": "SG Admin",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "description": "Smart Guardian Web Admin Portal & Customer Support Dashboard",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}

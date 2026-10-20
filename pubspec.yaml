@@ -9,6 +9,7 @@ environment:
 workspace:
   - apps/parent_app
   - apps/child_app
+  - apps/admin_portal
   - packages/sg_core
   - packages/sg_data
   - packages/sg_domain
