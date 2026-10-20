@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================================
+    📌 نصوص ومسميات الموارد لتطبيق الطفل - Smart Guardian
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    تحتوي على نصوص خدمة سهولة الوصول، مسؤول الجهاز، الإشعارات، وشاشة حظر التطبيقات.
+    ============================================================================
+-->
+<resources>
+    <string name="app_name">Smart Guardian Child</string>
+    <string name="device_admin_description">صلاحية مسؤول الجهاز لتطبيق Smart Guardian لمنع إزالة التطبيق غير المصرح بها وإدارة أمان شاشة الهاتف.</string>
+    <string name="accessibility_service_description">تستخدم خدمة سهولة الوصول في Smart Guardian لمراقبة التطبيقات المفتوحة في الواجهة وحظر التطبيقات الممنوعة وإدارة وقت الشاشة المفروض من ولي الأمر.</string>
+    <string name="device_admin_disable_warning">تحذير أمني: تعطيل صلاحية مسؤول الجهاز سيوقف حماية الحساب وسيقوم بإرسال تنبيه فوري لولي الأمر عبر خادم Smart Guardian.</string>
+    
+    <!-- نصوص الخدمة الدائمة وإشعار الحماية -->
+    <string name="foreground_service_channel_name">حماية الجهاز النشطة</string>
+    <string name="foreground_service_channel_desc">إشعار دائم يؤكد استمرار فحص وقت الشاشة وتأمين الجهاز ضد الإغلاق القسري.</string>
+    <string name="foreground_service_title">حماية Smart Guardian نشطة</string>
+    <string name="foreground_service_text">نظام الرقابة الأبوية يعمل في الخلفية لضمان استخدام آمن ومتوازن.</string>
+
+    <!-- نصوص شاشة الحظر Overlay -->
+    <string name="blocked_app_title">التطبيق محظور</string>
+    <string name="blocked_app_message">تم حظر الوصول إلى هذا التطبيق من قبل ولي الأمر. يرجى طلب الإذن أو المحاولة لاحقاً بعد انتهاء فترة الحظر.</string>
+    <string name="blocked_app_btn_home">العودة للشاشة الرئيسية</string>
+</resources>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================================
+    📌 واجهة شاشة حظر التطبيقات المنبثقة (Block Overlay Activity Layout)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    تظهر عندما يفتح الطفل تطبيقاً مضافاً إلى قائمة الحظر، لمنعه وتوجيهه
+    إلى الشاشة الرئيسية.
+    ============================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#0F172A">
+
+    <!-- كارت التنبيه المركزي -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="28dp"
+        android:background="#1E293B">
+
+        <!-- أيقونة القفل أو التنبيه -->
+        <ImageView
+            android:id="@+id/imgLockIcon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginBottom="20dp"
+            android:src="@android:drawable/ic_lock_lock"
+            android:contentDescription="@string/blocked_app_title" />
+
+        <!-- عنوان الشاشة -->
+        <TextView
+            android:id="@+id/tvBlockedTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/blocked_app_title"
+            android:textColor="#EF4444"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"
+            android:gravity="center" />
+
+        <!-- اسم الحزمة المحظورة -->
+        <TextView
+            android:id="@+id/tvPackageName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#94A3B8"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center" />
+
+        <!-- رسالة الشرح والتوجيه -->
+        <TextView
+            android:id="@+id/tvBlockedMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/blocked_app_message"
+            android:textColor="#CBD5E1"
+            android:textSize="15sp"
+            android:lineSpacingExtra="4dp"
+            android:layout_marginBottom="28dp"
+            android:gravity="center" />
+
+        <!-- زر العودة للشاشة الرئيسية -->
+        <Button
+            android:id="@+id/btnGoHome"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="@string/blocked_app_btn_home"
+            android:textColor="#FFFFFF"
+            android:background="#2563EB"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

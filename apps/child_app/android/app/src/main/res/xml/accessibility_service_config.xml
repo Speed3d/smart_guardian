@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================================
+    📌 إعدادات خدمة سهولة الوصول (Accessibility Service Configuration)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    هذا الملف يحدد أحداث النظام التي تستمع إليها الخدمة:
+    - typeWindowStateChanged: لاستشعار فتح تطبيق جديد والتحقق إن كان محظوراً.
+    - canRetrieveWindowContent="false": مراعاة للخصوصية وسياسات Google Play
+      بحيث لا نقرأ محتوى الشاشات أو النصوص المكتوبة، بل نرصد فقط اسم الحزمة النشطة.
+    ============================================================================
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/accessibility_service_description"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:notificationTimeout="100"
+    android:canRetrieveWindowContent="false"
+    android:settingsActivity="com.smartguardian.child_app.MainActivity" />
