@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Child App</string>
+	<string>Smart Guardian Child</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- أذونات الرقابة الأبوية والموقع الجغرافي لنظام iOS - Smart Guardian -->
+	<key>NSFamilyControlsUsageDescription</key>
+	<string>يستخدم Smart Guardian إذن الرقابة الأبوية Screen Time لحماية الطفل وإدارة أوقات الشاشة وحظر التطبيقات المحددة من قبل ولي الأمر.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>يستخدم التطبيق الموقع الجغرافي لطمأنة ولي الأمر وعرض موقع الطفل في حالات الطوارئ.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>يسمح للتطبيق بتحديث موقع الطفل الجغرافي في الخلفية عند طلب ولي الأمر أو إرسال استغاثة SOS.</string>
 </dict>
 </plist>

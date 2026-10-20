@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    ============================================================================
+    📌 ملف الصلاحيات والأذونات الخاصة بنظام iOS (Runner Entitlements)
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    يحدد ميزات أمان Apple المطلوبة لتطبيق الطفل:
+    1. com.apple.developer.family-controls: إذن Screen Time و Family Controls.
+    2. com.apple.security.application-groups: حاوية بيانات مشتركة بين التطبيق
+       وملحق المراقبة (DeviceActivityMonitorExtension).
+    ============================================================================
+-->
+<plist version="1.0">
+<dict>
+    <!-- صلاحية Apple للرقابة الأبوية والتحكم في وقت الشاشة -->
+    <key>com.apple.developer.family-controls</key>
+    <true/>
+
+    <!-- مجموعة التطبيقات لمشاركة البيانات مع ملحق الخلفية في iOS -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.smartguardian.childapp</string>
+    </array>
+</dict>
+</plist>
