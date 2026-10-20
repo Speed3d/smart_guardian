@@ -1,8 +1,11 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+// ============================================================================
+// 📌 حزمة sg_core - ملف التصدير العام
+// ----------------------------------------------------------------------------
+// يصدر كافة الثوابت العامة، وفئات الأخطاء، والأدوات المشتركة لكافة التطبيقات.
+// ============================================================================
 library;
 
-export 'src/sg_core_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'constants/app_constants.dart';
+export 'errors/exceptions.dart';
+export 'errors/failures.dart';
+export 'utils/date_formatter.dart';

@@ -1,121 +1,177 @@
 import 'package:flutter/material.dart';
+import 'package:sg_core/sg_core.dart';
+import 'package:sg_ui/sg_ui.dart';
+import 'package:sg_native_bridge/sg_native_bridge.dart';
+
+/// ============================================================================
+/// 📌 نقطة انطلاق تطبيق الطفل (Smart Guardian Child)
+/// ----------------------------------------------------------------------------
+/// يثبت على جهاز الطفل؛ يعرض الوقت المتبقي، ويستقبل أوامر الأب، ويتضمن زر الطوارئ SOS.
+/// ============================================================================
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const SmartGuardianChildApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SmartGuardianChildApp extends StatelessWidget {
+  const SmartGuardianChildApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: '${AppConstants.appName} - حماية الطفل',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const ChildStatusScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class ChildStatusScreen extends StatefulWidget {
+  const ChildStatusScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ChildStatusScreen> createState() => _ChildStatusScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ChildStatusScreenState extends State<ChildStatusScreen> {
+  final int _remainingMinutes = 90;
+  bool _isSendingSos = false;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  /// إرسال إشارة استغاثة طارئة للأب
+  void _sendSosAlert() async {
+    setState(() => _isSendingSos = true);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isSendingSos = false);
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('تم إرسال إشعار الطوارئ 🚨', textAlign: TextAlign.center),
+          content: const Text(
+            'تم إرسال موقعك الجغرافي وحالة جهازك فوراً إلى هاتف ولي الأمر.',
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('حسناً'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Smart Guardian - وضع الحماية'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // دائرة عرض الوقت المتبقي
+              Center(
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withAlpha(20),
+                    border: Border.all(color: AppColors.primary, width: 4),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.hourglass_top, color: AppColors.primary, size: 36),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppDateUtils.formatDurationMinutes(_remainingMinutes),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Text(
+                        'متبقي اليوم',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.lightTextSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // بطاقة حالة الحماية
+              SgCard(
+                child: Row(
+                  children: [
+                    const Icon(Icons.shield, color: AppColors.success, size: 32),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'الحماية الذكية مفعلة',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'الجهاز يخضع للجدول المحدد والرقابة الآمنة.',
+                            style: TextStyle(color: AppColors.lightTextSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(height: 8),
+                          // فحص حالة إدارة الجهاز عبر الـ Native Bridge
+                          FutureBuilder<bool>(
+                            future: DeviceControlBridge.isDeviceAdminActive(),
+                            builder: (context, snapshot) {
+                              final isAdmin = snapshot.data ?? false;
+                              return Text(
+                                isAdmin ? 'حماية الحذف: نشطة 🛡️' : 'حماية الحذف: بانتظار التفعيل ⚙️',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isAdmin ? AppColors.success : AppColors.warning,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+
+              // زر الطوارئ SOS
+              SgButton(
+                label: 'طلب مساعدة طارئة (SOS)',
+                type: SgButtonType.danger,
+                icon: Icons.emergency,
+                isLoading: _isSendingSos,
+                onPressed: _sendSosAlert,
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }

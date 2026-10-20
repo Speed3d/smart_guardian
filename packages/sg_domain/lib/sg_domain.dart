@@ -1,8 +1,17 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+// ============================================================================
+// 📌 حزمة sg_domain - ملف التصدير العام
+// ----------------------------------------------------------------------------
+// يصدر كافة الكيانات ومنافذ المستودعات وحالات الاستخدام لطبقة الـ Domain.
+// ============================================================================
 library;
 
-export 'src/sg_domain_base.dart';
+// الكيانات (Entities)
+export 'entities/child_entity.dart';
+export 'entities/command_entity.dart';
+export 'entities/location_entity.dart';
 
-// TODO: Export any libraries intended for clients of this package.
+// المستودعات المجردة (Repository Interfaces)
+export 'repositories/command_repository.dart';
+
+// حالات الاستخدام (Use Cases)
+export 'usecases/lock_device_usecase.dart';

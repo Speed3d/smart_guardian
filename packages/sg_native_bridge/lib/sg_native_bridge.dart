@@ -1,5 +1,9 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+// ============================================================================
+// 📌 حزمة sg_native_bridge - ملف التصدير العام
+// ----------------------------------------------------------------------------
+// يصدر كافة جسور قنوات الاتصال الأصلية (Platform Channels) بين Flutter والأنظمة الأصلية.
+// ============================================================================
+library;
+
+export 'channels/app_usage_channel.dart';
+export 'channels/device_control_channel.dart';

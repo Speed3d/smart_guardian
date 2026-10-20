@@ -1,122 +1,223 @@
 import 'package:flutter/material.dart';
+import 'package:sg_core/sg_core.dart';
+import 'package:sg_ui/sg_ui.dart';
+
+/// ============================================================================
+/// 📌 نقطة انطلاق تطبيق الأب (Smart Guardian Parent)
+/// ----------------------------------------------------------------------------
+/// الواجهة الرئيسية لولي الأمر لمتابعة الأطفال وإرسال أوامر القفل وإدارة الأمان.
+/// ============================================================================
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const SmartGuardianParentApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SmartGuardianParentApp extends StatelessWidget {
+  const SmartGuardianParentApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const ParentDashboardScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class ParentDashboardScreen extends StatefulWidget {
+  const ParentDashboardScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ParentDashboardScreen> createState() => _ParentDashboardScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
+  bool _isDeviceLocked = false;
+  bool _isLoading = false;
 
-  void _incrementCounter() {
+  /// تبديل حالة قفل جهاز الطفل تجريبياً
+  void _toggleLock() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _isDeviceLocked = !_isDeviceLocked;
+      _isLoading = false;
     });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isDeviceLocked
+                ? 'تم إرسال أمر قفل الجهاز فوراً عبر FCM'
+                : 'تم فك قفل الجهاز بنجاح',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: _isDeviceLocked ? AppColors.danger : AppColors.success,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('لوحة تحكم الأب - Smart Guardian'),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // بطاقة ترحيبية وإحصائية
+              SgCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColors.primary.withAlpha(30),
+                          child: const Icon(
+                            Icons.family_restroom,
+                            size: 32,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'مرحباً بك، ولي الأمر',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'حالة الأجهزة: متصلة وآمنة ✅',
+                                style: TextStyle(
+                                  color: AppColors.lightTextSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // بطاقة الطفل ومؤشر الوقت المتبقي
+              SgCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'جهاز: أحمد',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _isDeviceLocked
+                                ? AppColors.danger.withAlpha(25)
+                                : AppColors.success.withAlpha(25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _isDeviceLocked ? 'الجهاز مقفل 🔒' : 'نشط الآن 🟢',
+                            style: TextStyle(
+                              color: _isDeviceLocked ? AppColors.danger : AppColors.success,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatItem(
+                          icon: Icons.timer,
+                          label: 'الوقت المتبقي',
+                          value: AppDateUtils.formatDurationMinutes(75),
+                        ),
+                        _buildStatItem(
+                          icon: Icons.battery_charging_full,
+                          label: 'البطارية',
+                          value: '84%',
+                        ),
+                        _buildStatItem(
+                          icon: Icons.location_on,
+                          label: 'الموقع',
+                          value: 'المنزل 🏠',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // زر التحكم بالقفل
+                    SizedBox(
+                      width: double.infinity,
+                      child: SgButton(
+                        label: _isDeviceLocked ? 'إلغاء قفل الجهاز' : 'قفل الجهاز فوراً',
+                        type: _isDeviceLocked ? SgButtonType.secondary : SgButtonType.danger,
+                        icon: _isDeviceLocked ? Icons.lock_open : Icons.lock,
+                        isLoading: _isLoading,
+                        onPressed: _toggleLock,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: AppColors.secondary, size: 26),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.lightTextSecondary, fontSize: 12),
+        ),
+      ],
     );
   }
 }

@@ -1,6 +1,7 @@
 name: sg_ui
 description: "A new Flutter package project."
 version: 0.0.1
+resolution: workspace
 homepage:
 
 environment:

@@ -1,14 +1,13 @@
 name: sg_domain
-description: A starting point for Dart libraries or applications.
+description: "Smart Guardian Domain Layer - Entities, Use Cases, Repository Contracts"
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+resolution: workspace
 
 environment:
   sdk: ^3.12.2
 
-# Add regular dependencies here.
 dependencies:
-  # path: ^1.9.0
+  sg_core:
 
 dev_dependencies:
   lints: ^6.0.0

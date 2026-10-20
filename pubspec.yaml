@@ -1,11 +1,19 @@
-# ضبط بيئة العمل الجذرية لـ Melos Monorepo
-# هذا الملف يدير حزم المشروع بالكامل
-name: smart_guardian_workspace
+# إعدادات مساحة العمل الموحدة لـ Smart Guardian
+name: smart_guardian
 description: "Smart Guardian Parental Control Platform - Workspace"
 publish_to: "none"
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
+
+workspace:
+  - apps/parent_app
+  - apps/child_app
+  - packages/sg_core
+  - packages/sg_data
+  - packages/sg_domain
+  - packages/sg_native_bridge
+  - packages/sg_ui
 
 dev_dependencies:
   melos: ^8.9.0
