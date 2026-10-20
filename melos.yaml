@@ -1,0 +1,9 @@
+name: smart_guardian
+
+packages:
+  - apps/*
+  - packages/*
+
+command:
+  bootstrap:
+    usePubspecOverrides: true

@@ -1,0 +1,52 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.g.dart
+*.freezed.dart
+
+# Melos
+.melos_tool/
+
+# Android
+**/android/.gradle
+**/android/local.properties
+**/android/app/src/main/res/raw/awsconfiguration.json
+**/android/app/src/main/res/raw/amplifyconfiguration.json
+**/android/.idea
+**/android/app/build/
+**/android/*.iml
+**/android/app/*.iml
+
+# iOS / macOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.framework
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/*.xcworkspace
+**/ios/*.xcuserdatad
+**/*.xcuserdata/
+
+# Environment and sensitive keys
+*.env
+*.key
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.idea/
+*.swp
+*.lock
