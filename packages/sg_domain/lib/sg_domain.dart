@@ -8,6 +8,7 @@ library;
 // الكيانات (Entities)
 export 'entities/child_entity.dart';
 export 'entities/command_entity.dart';
+export 'entities/device_entity.dart';
 export 'entities/location_entity.dart';
 export 'entities/pairing_code_entity.dart';
 export 'entities/user_entity.dart';
@@ -24,3 +25,4 @@ export 'usecases/generate_pairing_code_usecase.dart';
 export 'usecases/get_children_usecase.dart';
 export 'usecases/lock_device_usecase.dart';
 export 'usecases/sign_in_usecase.dart';
+export 'usecases/verify_pairing_code_usecase.dart';

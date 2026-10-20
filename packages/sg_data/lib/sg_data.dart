@@ -8,6 +8,7 @@ library;
 // نماذج البيانات (Models)
 export 'models/child_model.dart';
 export 'models/command_model.dart';
+export 'models/device_model.dart';
 export 'models/pairing_code_model.dart';
 export 'models/user_model.dart';
 

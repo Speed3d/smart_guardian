@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sg_core/sg_core.dart';
+import '../../models/device_model.dart';
 import '../../models/pairing_code_model.dart';
 
 // ============================================================================
@@ -13,6 +14,7 @@ abstract class FirestorePairingDataSource {
   Future<PairingCodeModel> generatePairingCode(String parentId, String childId);
   Future<PairingCodeModel?> verifyPairingCode(String code);
   Future<void> markCodeAsUsed(String codeId, String deviceId);
+  Future<void> registerDevice(DeviceModel device);
 }
 
 class FirestorePairingDataSourceImpl implements FirestorePairingDataSource {
@@ -24,11 +26,13 @@ class FirestorePairingDataSourceImpl implements FirestorePairingDataSource {
   CollectionReference<Map<String, dynamic>> get _pairingCollection =>
       _firestore.collection(AppConstants.pairingCodesCollection);
 
+  CollectionReference<Map<String, dynamic>> get _devicesCollection =>
+      _firestore.collection(AppConstants.devicesCollection);
+
   @override
   Future<PairingCodeModel> generatePairingCode(
       String parentId, String childId) async {
     try {
-      // توليد كود عشوائي مكون من 6 أرقام (100000 - 999999)
       final random = Random.secure();
       final codeString = (100000 + random.nextInt(900000)).toString();
       final expiresAt = DateTime.now().add(const Duration(
@@ -85,6 +89,15 @@ class FirestorePairingDataSourceImpl implements FirestorePairingDataSource {
         'usedDeviceId': deviceId,
         'usedAt': DateTime.now().millisecondsSinceEpoch,
       });
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> registerDevice(DeviceModel device) async {
+    try {
+      await _devicesCollection.doc(device.id).set(device.toMap(), SetOptions(merge: true));
     } catch (e) {
       throw ServerException(e.toString());
     }

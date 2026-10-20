@@ -96,5 +96,8 @@ class FakePairingDataSource implements FirestorePairingDataSource {
   Future<void> markCodeAsUsed(String codeId, String deviceId) async {}
 
   @override
+  Future<void> registerDevice(DeviceModel device) async {}
+
+  @override
   Future<PairingCodeModel?> verifyPairingCode(String code) async => null;
 }

@@ -4,13 +4,15 @@ import 'package:sg_core/sg_core.dart';
 import 'package:sg_ui/sg_ui.dart';
 
 import 'core/di/service_locator.dart';
+import 'features/pairing/presentation/cubit/pairing_input_cubit.dart';
+import 'features/pairing/presentation/views/pairing_screen.dart';
 import 'features/status/presentation/cubit/child_status_cubit.dart';
 import 'features/status/presentation/cubit/child_status_state.dart';
 
 // ============================================================================
 // 📌 نقطة انطلاق تطبيق الطفل (Smart Guardian Child)
 // ----------------------------------------------------------------------------
-// يدمج BLoC/Cubit مع قنوات الاتصال الأصلية (Platform Channels) لإدارة الحظر.
+// يدمج شاشة الاقتران المبدئي وحالة الحماية مع قنوات الاتصال الأصلية (Platform Channels).
 // ============================================================================
 
 void main() async {
@@ -19,21 +21,54 @@ void main() async {
   runApp(const SmartGuardianChildApp());
 }
 
-class SmartGuardianChildApp extends StatelessWidget {
-  const SmartGuardianChildApp({super.key});
+class SmartGuardianChildApp extends StatefulWidget {
+  final bool initialIsPaired;
+
+  const SmartGuardianChildApp({
+    super.key,
+    this.initialIsPaired = false,
+  });
+
+  @override
+  State<SmartGuardianChildApp> createState() => _SmartGuardianChildAppState();
+}
+
+class _SmartGuardianChildAppState extends State<SmartGuardianChildApp> {
+  late bool _isPaired;
+
+  @override
+  void initState() {
+    super.initState();
+    _isPaired = widget.initialIsPaired;
+  }
+
+  void _onPairingCompleted() {
+    setState(() {
+      _isPaired = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ChildStatusCubit>(
-      create: (_) => sl<ChildStatusCubit>()
-        ..listenToParentCommands('demo_child_1', 'demo_device_1'),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ChildStatusCubit>(
+          create: (_) => sl<ChildStatusCubit>()
+            ..listenToParentCommands('demo_child_1', 'demo_device_1'),
+        ),
+        BlocProvider<PairingInputCubit>(
+          create: (_) => sl<PairingInputCubit>(),
+        ),
+      ],
       child: MaterialApp(
         title: '${AppConstants.appName} - حماية الطفل',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        home: const ChildStatusScreen(),
+        home: _isPaired
+            ? const ChildStatusScreen()
+            : PairingScreen(onPairingSuccess: _onPairingCompleted),
       ),
     );
   }

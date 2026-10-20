@@ -1,9 +1,10 @@
+import '../entities/device_entity.dart';
 import '../entities/pairing_code_entity.dart';
 
 // ============================================================================
 // 📌 واجهة مستودع أكواد الربط (Pairing Repository Interface)
 // ----------------------------------------------------------------------------
-// عقد تجريدي لتوليد أكواد الربط والتحقق من صحتها من جهاز الطفل.
+// عقد تجريدي لتوليد أكواد الربط والتحقق من صحتها وتسجيل جهاز الطفل في النظام.
 // ============================================================================
 
 abstract class PairingRepository {
@@ -18,4 +19,7 @@ abstract class PairingRepository {
 
   /// وسم الكود كمستخدم بعد نجاح الربط
   Future<void> markCodeAsUsed(String codeId, String deviceId);
+
+  /// تسجيل جهاز الطفل في Firestore بعد نجاح الاقتران
+  Future<void> registerDevice(DeviceEntity device);
 }
