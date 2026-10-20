@@ -8,6 +8,7 @@ void main() {
     await initChildServiceLocator(
       mockCommandDataSource: FakeCommandDataSource(),
       mockPairingDataSource: FakePairingDataSource(),
+      mockUsageDataSource: FakeUsageDataSource(),
     );
   });
 
@@ -24,6 +25,7 @@ void main() {
     await tester.pumpWidget(const SmartGuardianChildApp(initialIsPaired: true));
     await tester.pumpAndSettle();
     expect(find.text('Smart Guardian - وضع الحماية'), findsOneWidget);
+    expect(find.text('الحماية الذكية مفعلة'), findsOneWidget);
     expect(find.text('طلب مساعدة طارئة (SOS)'), findsOneWidget);
   });
 }

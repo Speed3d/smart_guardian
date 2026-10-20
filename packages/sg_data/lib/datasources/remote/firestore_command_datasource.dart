@@ -12,6 +12,7 @@ import '../../models/command_model.dart';
 abstract class FirestoreCommandDataSource {
   Future<void> sendCommand(CommandModel command);
   Stream<CommandModel> listenToCommands(String childId, String deviceId);
+  Stream<List<CommandModel>> listenToRecentCommands(String childId);
   Future<void> updateCommandStatus(String commandId, CommandStatus status);
 }
 
@@ -44,6 +45,18 @@ class FirestoreCommandDataSourceImpl implements FirestoreCommandDataSource {
         .where((change) => change.type == DocumentChangeType.added)
         .map((change) => CommandModel.fromMap(
             change.doc.data()!, change.doc.id));
+  }
+
+  @override
+  Stream<List<CommandModel>> listenToRecentCommands(String childId) {
+    return _commandsCollection
+        .where('childId', isEqualTo: childId)
+        .orderBy('createdAt', descending: true)
+        .limit(10)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CommandModel.fromMap(doc.data(), doc.id))
+            .toList());
   }
 
   @override

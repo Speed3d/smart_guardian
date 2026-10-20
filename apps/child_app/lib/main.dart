@@ -12,7 +12,8 @@ import 'features/status/presentation/cubit/child_status_state.dart';
 // ============================================================================
 // 📌 نقطة انطلاق تطبيق الطفل (Smart Guardian Child)
 // ----------------------------------------------------------------------------
-// يدمج شاشة الاقتران المبدئي وحالة الحماية مع قنوات الاتصال الأصلية (Platform Channels).
+// يدمج شاشة الاقتران المبدئي وحالة الحماية مع قنوات الاتصال الأصلية (Platform Channels)
+// ونظام الأوامر والمزامنة الحية (FCM & Real-time Commands).
 // ============================================================================
 
 void main() async {
@@ -111,17 +112,17 @@ class ChildStatusScreen extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            return Padding(
+            return SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const SizedBox(height: 10),
                   // دائرة عرض الوقت المتبقي
                   Center(
                     child: Container(
-                      width: 180,
-                      height: 180,
+                      width: 170,
+                      height: 170,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: state.isLocked
@@ -142,7 +143,7 @@ class ChildStatusScreen extends StatelessWidget {
                             color: state.isLocked
                                 ? AppColors.danger
                                 : AppColors.primary,
-                            size: 36,
+                            size: 34,
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -170,7 +171,7 @@ class ChildStatusScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
 
                   // بطاقة حالة الحماية الأصلية
                   SgCard(
@@ -208,17 +209,31 @@ class ChildStatusScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                state.isDeviceAdminActive
-                                    ? 'حماية الحذف: نشطة 🛡️'
-                                    : 'حماية الحذف: بانتظار التفعيل ⚙️',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: state.isDeviceAdminActive
-                                      ? AppColors.success
-                                      : AppColors.warning,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  Text(
+                                    state.isDeviceAdminActive
+                                        ? 'إدارة الجهاز: نشطة 🛡️'
+                                        : 'إدارة الجهاز: غير مفعلة ⚙️',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: state.isDeviceAdminActive
+                                          ? AppColors.success
+                                          : AppColors.warning,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'التطبيقات المقيدة: ${state.blockedPackages.length}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -226,7 +241,38 @@ class ChildStatusScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 16),
+
+                  // تنبيه آخر أمر تم استلامه من الأب
+                  if (state.lastExecutedCommand != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: AppColors.primary.withAlpha(50)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.flash_on,
+                              color: AppColors.primary, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'آخر تحديث: ${state.lastExecutedCommand}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 32),
 
                   // زر الطوارئ SOS
                   SgButton(

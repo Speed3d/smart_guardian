@@ -8,6 +8,8 @@ import 'core/di/service_locator.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/children/presentation/cubit/manage_child_cubit.dart';
 import 'features/children/presentation/views/add_edit_child_screen.dart';
+import 'features/commands/presentation/cubit/command_cubit.dart';
+import 'features/commands/presentation/views/remote_control_sheet.dart';
 import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'features/dashboard/presentation/cubit/dashboard_state.dart';
 import 'features/pairing/presentation/cubit/pairing_code_cubit.dart';
@@ -252,6 +254,33 @@ class ParentDashboardScreen extends StatelessWidget {
                                   create: (_) => sl<PairingCodeCubit>(),
                                   child: GeneratePairingCodeScreen(child: child),
                                 ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        // زر فتح مركز التحكم الفوري بالأوامر
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(46),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.settings_remote, size: 20),
+                          label: const Text('مركز التحكم الفوري عن بُعد (FCM Commands)'),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                              ),
+                              builder: (_) => BlocProvider<CommandCubit>(
+                                create: (_) => sl<CommandCubit>(),
+                                child: RemoteControlSheet(child: child),
                               ),
                             );
                           },

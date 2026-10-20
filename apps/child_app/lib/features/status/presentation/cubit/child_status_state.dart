@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 // ============================================================================
 // 📌 حالات شاشة الطفل (Child Status States)
 // ----------------------------------------------------------------------------
-// تمثل حالة تطبيق الطفل (الوقت المتبقي، حالة القفل، وإرسال الـ SOS).
+// تمثل حالة تطبيق الطفل (الوقت المتبقي، حالة القفل، التطبيقات المحظورة، والخدمة الدائمة).
 // ============================================================================
 
 class ChildStatusState extends Equatable {
@@ -11,6 +11,9 @@ class ChildStatusState extends Equatable {
   final bool isLocked;
   final bool isSendingSos;
   final bool isDeviceAdminActive;
+  final bool isForegroundServiceRunning;
+  final List<String> blockedPackages;
+  final String? lastExecutedCommand;
   final String? alertMessage;
 
   const ChildStatusState({
@@ -18,6 +21,9 @@ class ChildStatusState extends Equatable {
     this.isLocked = false,
     this.isSendingSos = false,
     this.isDeviceAdminActive = false,
+    this.isForegroundServiceRunning = false,
+    this.blockedPackages = const [],
+    this.lastExecutedCommand,
     this.alertMessage,
   });
 
@@ -26,6 +32,9 @@ class ChildStatusState extends Equatable {
     bool? isLocked,
     bool? isSendingSos,
     bool? isDeviceAdminActive,
+    bool? isForegroundServiceRunning,
+    List<String>? blockedPackages,
+    String? lastExecutedCommand,
     String? alertMessage,
   }) {
     return ChildStatusState(
@@ -33,6 +42,10 @@ class ChildStatusState extends Equatable {
       isLocked: isLocked ?? this.isLocked,
       isSendingSos: isSendingSos ?? this.isSendingSos,
       isDeviceAdminActive: isDeviceAdminActive ?? this.isDeviceAdminActive,
+      isForegroundServiceRunning:
+          isForegroundServiceRunning ?? this.isForegroundServiceRunning,
+      blockedPackages: blockedPackages ?? this.blockedPackages,
+      lastExecutedCommand: lastExecutedCommand ?? this.lastExecutedCommand,
       alertMessage: alertMessage,
     );
   }
@@ -43,6 +56,9 @@ class ChildStatusState extends Equatable {
         isLocked,
         isSendingSos,
         isDeviceAdminActive,
+        isForegroundServiceRunning,
+        blockedPackages,
+        lastExecutedCommand,
         alertMessage,
       ];
 }

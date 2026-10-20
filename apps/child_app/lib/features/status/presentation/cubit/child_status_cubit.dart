@@ -1,52 +1,105 @@
-import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sg_core/sg_core.dart';
-import 'package:sg_domain/sg_domain.dart';
 import 'package:sg_native_bridge/sg_native_bridge.dart';
+import '../../domain/batch_usage_syncer.dart';
+import '../../domain/child_command_dispatcher.dart';
 import 'child_status_state.dart';
 
 // ============================================================================
 // 📌 إدارة حالة تطبيق الطفل (Child Status Cubit)
 // ----------------------------------------------------------------------------
-// يستمع لأوامر الأب الحية عبر CommandRepository ويطبق القفل عبر DeviceControlBridge.
+// يدمج موزع الأوامر الفورية (Command Dispatcher)، ومزامن الاستخدام الموفر للتكلفة
+// (Batch Usage Syncer)، والجسر الأصلي لنظام أندرويد (Native Bridge).
 // ============================================================================
 
 class ChildStatusCubit extends Cubit<ChildStatusState> {
-  final CommandRepository commandRepository;
-  StreamSubscription<CommandEntity>? _commandsSubscription;
+  final ChildCommandDispatcher commandDispatcher;
+  final BatchUsageSyncer? usageSyncer;
 
   ChildStatusCubit({
-    required this.commandRepository,
-  }) : super(const ChildStatusState());
+    required this.commandDispatcher,
+    this.usageSyncer,
+  }) : super(const ChildStatusState()) {
+    _setupDispatcherCallbacks();
+  }
 
-  /// التحقق من صلاحية إدارة الجهاز الأصلية
-  Future<void> checkDeviceAdminStatus() async {
+  void _setupDispatcherCallbacks() {
+    commandDispatcher.onLockStateChanged = (isLocked) {
+      emit(state.copyWith(isLocked: isLocked));
+    };
+
+    commandDispatcher.onTimeExtended = (additionalMinutes) {
+      emit(state.copyWith(
+        remainingMinutes: state.remainingMinutes + additionalMinutes,
+        lastExecutedCommand: 'تم تمديد الوقت بـ $additionalMinutes دقيقة',
+      ));
+    };
+
+    commandDispatcher.onBlockedAppsChanged = (blocked) {
+      emit(state.copyWith(
+        blockedPackages: blocked,
+        lastExecutedCommand: 'تم تحديث قائمة التطبيقات المحظورة (${blocked.length})',
+      ));
+    };
+
+    commandDispatcher.onCommandExecuted = (command) {
+      String desc;
+      switch (command.action) {
+        case AppConstants.commandLockDevice:
+          desc = 'تم قفل الجهاز فورياً بطلب الأب';
+          break;
+        case AppConstants.commandUnlockDevice:
+          desc = 'تم فتح قفل الجهاز بطلب الأب';
+          break;
+        case AppConstants.commandExtendScreenTime:
+          desc = 'تم تمديد وقت الشاشة بنجاح';
+          break;
+        case AppConstants.commandBlockApp:
+          desc = 'تم حظر تطبيق جديد بنجاح';
+          break;
+        case AppConstants.commandUnblockApp:
+          desc = 'تم إلغاء حظر التطبيق بنجاح';
+          break;
+        case AppConstants.commandRequestLocation:
+          desc = 'تم إرسال إحداثيات الموقع الحالي للأب';
+          break;
+        default:
+          desc = 'تم تنفيذ الأمر: ${command.action}';
+      }
+      emit(state.copyWith(lastExecutedCommand: desc));
+    };
+  }
+
+  /// التحقق من صلاحية إدارة الجهاز والخدمة الدائمة
+  Future<void> checkNativeStatus() async {
     try {
-      final isActive = await DeviceControlBridge.isDeviceAdminActive();
-      emit(state.copyWith(isDeviceAdminActive: isActive));
+      final isAdmin = await DeviceControlBridge.isDeviceAdminActive();
+      final isServiceRunning = await DeviceControlBridge.isForegroundServiceRunning();
+      final blocked = await DeviceControlBridge.getBlockedPackages();
+      emit(state.copyWith(
+        isDeviceAdminActive: isAdmin,
+        isForegroundServiceRunning: isServiceRunning,
+        blockedPackages: blocked,
+      ));
     } catch (_) {
-      emit(state.copyWith(isDeviceAdminActive: false));
+      // تجاهل أخطاء المنصة في بيئات الاختبار
     }
   }
 
-  /// بدء الاستماع لأوامر الأب الحية عبر الـ Repository
+  /// بدء الاستماع لأوامر الأب الحية وتشغيل الحماية الدائمة
   void listenToParentCommands(String childId, String deviceId) {
-    _commandsSubscription?.cancel();
-    _commandsSubscription = commandRepository
-        .listenToChildCommands(childId, deviceId)
-        .listen((command) async {
-      if (command.action == AppConstants.commandLockDevice) {
-        await DeviceControlBridge.lockDevice();
-        emit(state.copyWith(isLocked: true));
-        await commandRepository.updateCommandStatus(
-            command.id, CommandStatus.executed);
-      } else if (command.action == AppConstants.commandUnlockDevice) {
-        await DeviceControlBridge.unlockDevice();
-        emit(state.copyWith(isLocked: false));
-        await commandRepository.updateCommandStatus(
-            command.id, CommandStatus.executed);
-      }
-    });
+    commandDispatcher.startListening(childId: childId, deviceId: deviceId);
+
+    // تفعيل الخدمة الدائمة في الخلفية لضمان استمرار الحماية 24/7
+    try {
+      DeviceControlBridge.startForegroundService();
+      emit(state.copyWith(isForegroundServiceRunning: true));
+    } catch (_) {}
+
+    // بدء المزامنة الدورية المجمعة لوقت الشاشة
+    usageSyncer?.startPeriodicSync(childId: childId, deviceId: deviceId);
+
+    checkNativeStatus();
   }
 
   /// إرسال إشارة الطوارئ SOS
@@ -67,7 +120,8 @@ class ChildStatusCubit extends Cubit<ChildStatusState> {
 
   @override
   Future<void> close() {
-    _commandsSubscription?.cancel();
+    commandDispatcher.dispose();
+    usageSyncer?.stop();
     return super.close();
   }
 }

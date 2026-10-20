@@ -3,6 +3,7 @@ import 'package:sg_data/sg_data.dart';
 import 'package:sg_domain/sg_domain.dart';
 import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/children/presentation/cubit/manage_child_cubit.dart';
+import '../../features/commands/presentation/cubit/command_cubit.dart';
 import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import '../../features/pairing/presentation/cubit/pairing_code_cubit.dart';
 
@@ -19,6 +20,7 @@ Future<void> initServiceLocator({
   FirestoreChildDataSource? mockChildDataSource,
   FirestoreCommandDataSource? mockCommandDataSource,
   FirestorePairingDataSource? mockPairingDataSource,
+  FirestoreUsageDataSource? mockUsageDataSource,
 }) async {
   // ---------------------------------------------------------------------------
   // 1. مصادر البيانات (Data Sources)
@@ -37,6 +39,10 @@ Future<void> initServiceLocator({
 
   sl.registerLazySingleton<FirestorePairingDataSource>(
     () => mockPairingDataSource ?? FirestorePairingDataSourceImpl(),
+  );
+
+  sl.registerLazySingleton<FirestoreUsageDataSource>(
+    () => mockUsageDataSource ?? FirestoreUsageDataSourceImpl(),
   );
 
   // ---------------------------------------------------------------------------
@@ -58,6 +64,10 @@ Future<void> initServiceLocator({
     () => PairingRepositoryImpl(sl()),
   );
 
+  sl.registerLazySingleton<UsageRepository>(
+    () => UsageRepositoryImpl(sl()),
+  );
+
   // ---------------------------------------------------------------------------
   // 3. حالات الاستخدام (Use Cases)
   // ---------------------------------------------------------------------------
@@ -75,6 +85,22 @@ Future<void> initServiceLocator({
 
   sl.registerLazySingleton<LockDeviceUseCase>(
     () => LockDeviceUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<UnlockDeviceUseCase>(
+    () => UnlockDeviceUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<ExtendScreenTimeUseCase>(
+    () => ExtendScreenTimeUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<ManageAppRestrictionUseCase>(
+    () => ManageAppRestrictionUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<RequestLocationUseCase>(
+    () => RequestLocationUseCase(sl()),
   );
 
   sl.registerLazySingleton<GeneratePairingCodeUseCase>(
@@ -108,6 +134,17 @@ Future<void> initServiceLocator({
   sl.registerFactory<ManageChildCubit>(
     () => ManageChildCubit(
       addChildUseCase: sl(),
+    ),
+  );
+
+  sl.registerFactory<CommandCubit>(
+    () => CommandCubit(
+      lockDeviceUseCase: sl(),
+      unlockDeviceUseCase: sl(),
+      extendScreenTimeUseCase: sl(),
+      manageAppRestrictionUseCase: sl(),
+      requestLocationUseCase: sl(),
+      commandRepository: sl(),
     ),
   );
 }

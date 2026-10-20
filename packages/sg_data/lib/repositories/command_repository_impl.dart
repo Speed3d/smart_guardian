@@ -33,6 +33,11 @@ class CommandRepositoryImpl implements CommandRepository {
   }
 
   @override
+  Stream<List<CommandEntity>> listenToRecentCommands(String childId) {
+    return _dataSource.listenToRecentCommands(childId);
+  }
+
+  @override
   Future<void> updateCommandStatus(String commandId, CommandStatus status) {
     return _dataSource.updateCommandStatus(commandId, status);
   }

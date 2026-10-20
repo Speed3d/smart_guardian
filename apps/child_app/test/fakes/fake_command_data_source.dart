@@ -10,6 +10,10 @@ class FakeCommandDataSource implements FirestoreCommandDataSource {
       _controller.stream;
 
   @override
+  Stream<List<CommandModel>> listenToRecentCommands(String childId) =>
+      Stream.value([]);
+
+  @override
   Future<void> sendCommand(CommandModel command) async {}
 
   @override
@@ -51,4 +55,16 @@ class FakePairingDataSource implements FirestorePairingDataSource {
     }
     return null;
   }
+}
+
+class FakeUsageDataSource implements FirestoreUsageDataSource {
+  @override
+  Future<void> saveUsageReport(UsageReportModel report) async {}
+
+  @override
+  Future<UsageReportModel?> getUsageReport(String childId, String date) async => null;
+
+  @override
+  Stream<UsageReportModel?> listenUsageReport(String childId, String date) =>
+      Stream.value(null);
 }

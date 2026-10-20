@@ -71,6 +71,20 @@ class FakeCommandDataSource implements FirestoreCommandDataSource {
       _controller.stream;
 
   @override
+  Stream<List<CommandModel>> listenToRecentCommands(String childId) {
+    return Stream.value([
+      CommandModel(
+        id: 'cmd_1',
+        childId: childId,
+        deviceId: 'device_1',
+        action: 'LOCK_DEVICE',
+        status: CommandStatus.executed,
+        createdAt: DateTime.now(),
+      )
+    ]);
+  }
+
+  @override
   Future<void> sendCommand(CommandModel command) async {}
 
   @override
@@ -99,5 +113,29 @@ class FakePairingDataSource implements FirestorePairingDataSource {
   Future<void> registerDevice(DeviceModel device) async {}
 
   @override
-  Future<PairingCodeModel?> verifyPairingCode(String code) async => null;
+  Future<PairingCodeModel?> verifyPairingCode(String code) async {
+    if (code == '582914') {
+      return PairingCodeModel(
+        id: 'pairing_1',
+        code: '582914',
+        parentId: 'mock_parent_1',
+        childId: 'mock_child_1',
+        expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+        isUsed: false,
+      );
+    }
+    return null;
+  }
+}
+
+class FakeUsageDataSource implements FirestoreUsageDataSource {
+  @override
+  Future<void> saveUsageReport(UsageReportModel report) async {}
+
+  @override
+  Future<UsageReportModel?> getUsageReport(String childId, String date) async => null;
+
+  @override
+  Stream<UsageReportModel?> listenUsageReport(String childId, String date) =>
+      Stream.value(null);
 }
