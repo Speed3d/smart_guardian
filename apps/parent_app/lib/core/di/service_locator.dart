@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:sg_data/sg_data.dart';
 import 'package:sg_domain/sg_domain.dart';
@@ -11,6 +12,7 @@ import '../../features/pairing/presentation/cubit/pairing_code_cubit.dart';
 // 📌 محدد وموزع الخدمات لتطبيق الأب (Service Locator - GetIt)
 // ----------------------------------------------------------------------------
 // يدير حقن التبعيات (Dependency Injection) لكافة المستودعات والـ Use Cases والـ Cubits.
+// يدعم التبديل الآلي بين Firebase السحابي ونمط المحاكاة المباشر InMemory.
 // ============================================================================
 
 final sl = GetIt.instance;
@@ -22,27 +24,49 @@ Future<void> initServiceLocator({
   FirestorePairingDataSource? mockPairingDataSource,
   FirestoreUsageDataSource? mockUsageDataSource,
 }) async {
+  final isFirebaseReady = Firebase.apps.isNotEmpty;
+
   // ---------------------------------------------------------------------------
   // 1. مصادر البيانات (Data Sources)
   // ---------------------------------------------------------------------------
   sl.registerLazySingleton<FirebaseAuthDataSource>(
-    () => mockAuthDataSource ?? FirebaseAuthDataSourceImpl(),
+    () =>
+        mockAuthDataSource ??
+        (isFirebaseReady
+            ? FirebaseAuthDataSourceImpl()
+            : InMemoryAuthDataSource()),
   );
 
   sl.registerLazySingleton<FirestoreChildDataSource>(
-    () => mockChildDataSource ?? FirestoreChildDataSourceImpl(),
+    () =>
+        mockChildDataSource ??
+        (isFirebaseReady
+            ? FirestoreChildDataSourceImpl()
+            : InMemoryChildDataSource()),
   );
 
   sl.registerLazySingleton<FirestoreCommandDataSource>(
-    () => mockCommandDataSource ?? FirestoreCommandDataSourceImpl(),
+    () =>
+        mockCommandDataSource ??
+        (isFirebaseReady
+            ? FirestoreCommandDataSourceImpl()
+            : InMemoryCommandDataSource()),
   );
 
   sl.registerLazySingleton<FirestorePairingDataSource>(
-    () => mockPairingDataSource ?? FirestorePairingDataSourceImpl(),
+    () =>
+        mockPairingDataSource ??
+        (isFirebaseReady
+            ? FirestorePairingDataSourceImpl()
+            : InMemoryPairingDataSource()),
   );
 
   sl.registerLazySingleton<FirestoreUsageDataSource>(
-    () => mockUsageDataSource ?? FirestoreUsageDataSourceImpl(),
+    () =>
+        mockUsageDataSource ??
+        (isFirebaseReady
+            ? FirestoreUsageDataSourceImpl()
+            : InMemoryUsageDataSource()),
   );
 
   // ---------------------------------------------------------------------------

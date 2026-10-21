@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:sg_data/sg_data.dart';
 import 'package:sg_domain/sg_domain.dart';
@@ -10,6 +11,7 @@ import '../../features/status/presentation/cubit/child_status_cubit.dart';
 // 📌 محدد وموزع الخدمات لتطبيق الطفل (Service Locator - GetIt)
 // ----------------------------------------------------------------------------
 // يدير حقن التبعيات لمستودعات الأوامر، المزامنة، والاقتران لـ Child App.
+// يدعم التشغيل السحابي عبر Firebase والتشغيل المحلي التفاعلي InMemory Fallback.
 // ============================================================================
 
 final sl = GetIt.instance;
@@ -19,17 +21,33 @@ Future<void> initChildServiceLocator({
   FirestorePairingDataSource? mockPairingDataSource,
   FirestoreUsageDataSource? mockUsageDataSource,
 }) async {
+  final isFirebaseReady = Firebase.apps.isNotEmpty;
+
   // 1. مصادر البيانات (Data Sources)
+  // يتم فحص جاهزية Firebase: إن كانت مهيأة تُستخدم مصادر Firestore الأصلية،
+  // وإلا يتم التحويل التلقائي لمصادر الذاكرة InMemory لمنع الانهيار وتمكين التجربة الفورية.
   sl.registerLazySingleton<FirestoreCommandDataSource>(
-    () => mockCommandDataSource ?? FirestoreCommandDataSourceImpl(),
+    () =>
+        mockCommandDataSource ??
+        (isFirebaseReady
+            ? FirestoreCommandDataSourceImpl()
+            : InMemoryCommandDataSource()),
   );
 
   sl.registerLazySingleton<FirestorePairingDataSource>(
-    () => mockPairingDataSource ?? FirestorePairingDataSourceImpl(),
+    () =>
+        mockPairingDataSource ??
+        (isFirebaseReady
+            ? FirestorePairingDataSourceImpl()
+            : InMemoryPairingDataSource()),
   );
 
   sl.registerLazySingleton<FirestoreUsageDataSource>(
-    () => mockUsageDataSource ?? FirestoreUsageDataSourceImpl(),
+    () =>
+        mockUsageDataSource ??
+        (isFirebaseReady
+            ? FirestoreUsageDataSourceImpl()
+            : InMemoryUsageDataSource()),
   );
 
   // 2. المستودعات (Repositories)

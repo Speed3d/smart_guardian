@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sg_core/sg_core.dart';
@@ -19,10 +20,16 @@ import 'features/pairing/presentation/views/generate_pairing_code_screen.dart';
 // 📌 نقطة انطلاق تطبيق الأب (Smart Guardian Parent)
 // ----------------------------------------------------------------------------
 // يدمج BLoC/Cubit لإدارة الحالة و GetIt لحقن التبعيات والتواصل مع Firebase.
+// يدعم التشغيل الآمن Offline/Demo في حال عدم ربط Firebase بعد.
 // ============================================================================
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('⚠️ Firebase not initialized: running in safe demo/in-memory mode: $e');
+  }
   await initServiceLocator();
   runApp(const SmartGuardianParentApp());
 }

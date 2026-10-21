@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sg_core/sg_core.dart';
@@ -14,10 +15,16 @@ import 'features/status/presentation/cubit/child_status_state.dart';
 // ----------------------------------------------------------------------------
 // يدمج شاشة الاقتران المبدئي وحالة الحماية مع قنوات الاتصال الأصلية (Platform Channels)
 // ونظام الأوامر والمزامنة الحية (FCM & Real-time Commands).
+// يدعم التشغيل الآمن Offline/Demo في حال عدم ربط Firebase بعد.
 // ============================================================================
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('⚠️ Firebase not initialized: running in safe demo/in-memory mode: $e');
+  }
   await initChildServiceLocator();
   runApp(const SmartGuardianChildApp());
 }
